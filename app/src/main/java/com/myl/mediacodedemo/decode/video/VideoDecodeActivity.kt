@@ -1,4 +1,4 @@
-package com.myl.mediacodedemo.video
+package com.myl.mediacodedemo.decode.video
 
 import android.content.Context
 import android.content.Intent
@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.myl.mediacodedemo.R
 

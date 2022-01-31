@@ -17,7 +17,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".video.VideoDecodeActivity" />
+        <activity android:name=".decode.video.VideoDecodeActivity" />
+        <activity android:name=".decode.audio.AudioDecodeActivity" />
     </application>
 
 </manifest>

@@ -2,9 +2,9 @@ package com.myl.mediacodedemo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.core.content.ContentProviderCompat.requireContext
 import com.myl.mediacodedemo.databinding.ActivityMainBinding
-import com.myl.mediacodedemo.video.VideoDecodeActivity
+import com.myl.mediacodedemo.decode.audio.AudioDecodeActivity
+import com.myl.mediacodedemo.decode.video.VideoDecodeActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initView() {
         activityMainBinding.audioDecode.setOnClickListener {
-
+            AudioDecodeActivity.startAudioDecodeActivity(this)
         }
         activityMainBinding.videoDecode.setOnClickListener {
             VideoDecodeActivity.startVideoDecodeActivity(this)

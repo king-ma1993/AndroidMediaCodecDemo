@@ -1,4 +1,4 @@
-package com.myl.mediacodedemo.video
+package com.myl.mediacodedemo.decode.video
 
 import android.content.res.AssetFileDescriptor
 import android.media.MediaCodec
