@@ -8,10 +8,12 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.appcompat.app.AppCompatActivity
 import com.myl.mediacodedemo.R
+import com.myl.mediacodedemo.decode.audio.AudioDecoder
 
 class VideoDecodeActivity : AppCompatActivity(), SurfaceHolder.Callback {
-
-    private var videoDecoder: VideoDecodeThread? = null
+    private val videoDecoder: VideoDecoder by lazy {
+        VideoDecoder()
+    }
 
     companion object {
         fun startVideoDecodeActivity(context: Context) {
@@ -28,7 +30,6 @@ class VideoDecodeActivity : AppCompatActivity(), SurfaceHolder.Callback {
         SurfaceView(this).apply {
             holder.addCallback(this@VideoDecodeActivity)
             setContentView(this)
-            videoDecoder = VideoDecodeThread()
         }
     }
 
@@ -38,20 +39,18 @@ class VideoDecodeActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            if (videoDecoder?.init(holder.surface, videoPath) == true) {
-                videoDecoder?.start()
-            } else {
-                videoDecoder = null
+            if (videoDecoder.init(holder.surface, videoPath)) {
+                videoDecoder.start()
             }
         }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        videoDecoder?.close()
+        videoDecoder.release()
     }
 
     override fun onPause() {
         super.onPause()
-        videoDecoder?.close()
+        videoDecoder.release()
     }
 }

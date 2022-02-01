@@ -5,12 +5,12 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.MediaCodec
-import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.myl.mediacodedemo.decode.MediaDecoder
+import java.lang.Exception
 import java.nio.ByteBuffer
 
 class AudioDecoder : MediaDecoder() {
@@ -38,103 +38,101 @@ class AudioDecoder : MediaDecoder() {
         audioTrack.play()
         var isEOS = false
         val startMs = System.currentTimeMillis()
-        while (!interrupted()) {
-            if (!isEOS) {
-                val inIndex: Int = decoder.dequeueInputBuffer(TIME_OUT_US)
-                if (inIndex >= 0) {
-                    val buffer: ByteBuffer? = decoder.getInputBuffer(inIndex)
-                    val sampleSize: Int = buffer?.let { extractor.readSampleData(it, 0) } ?: -1
-                    if (sampleSize < 0) {
-                        // We shouldn't stop the playback at this point,
-                        // just pass the EOS
-                        // flag to mediaDecoder, we will get it again from
-                        // the
-                        // dequeueOutputBuffer
-                        Log.d(
-                            TAG,
-                            "InputBuffer BUFFER_FLAG_END_OF_STREAM"
-                        )
-                        decoder.queueInputBuffer(
-                            inIndex, 0, 0, 0,
-                            MediaCodec.BUFFER_FLAG_END_OF_STREAM
-                        )
-                        isEOS = true
-                    } else {
-                        decoder.queueInputBuffer(
-                            inIndex, 0,
-                            sampleSize, extractor.sampleTime, 0
-                        )
-                        extractor.advance()
-                    }
-                }
-            }
-            when (val outIndex: Int = decoder.dequeueOutputBuffer(info, TIME_OUT_US)) {
-                MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
-                    Log.d(TAG, "INFO_OUTPUT_BUFFERS_CHANGED")
-                }
-                MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                    val format: MediaFormat = decoder.outputFormat
-                    Log.d(TAG, "New format $format")
-                    audioTrack.playbackRate = format
-                        .getInteger(MediaFormat.KEY_SAMPLE_RATE)
-                }
-                MediaCodec.INFO_TRY_AGAIN_LATER -> Log.d(
-                    TAG,
-                    "dequeueOutputBuffer timed out!"
-                )
-                else -> {
-                    val buffer: ByteBuffer? = decoder.getOutputBuffer(outIndex)
-                    Log.v(
-                        TAG,
-                        "We can't use this buffer but render it due to the API limit, $buffer"
-                    )
-                    val chunk = ByteArray(info.size)
-                    buffer?.get(chunk)
-                    //clear buffer,otherwise get the same buffer which is the last buffer
-                    buffer?.clear()
-                    // We use a very simple clock to keep the video FPS, or the
-                    // audio playback will be too fast
-                    while (info.presentationTimeUs / 1000 > System
-                            .currentTimeMillis() - startMs
-                    ) {
-                        try {
-                            sleep(10)
-                        } catch (e: InterruptedException) {
-                            e.printStackTrace()
-                            break
+        try {
+            while (!interrupted()) {
+                if (!isEOS) {
+                    val inIndex: Int = decoder.dequeueInputBuffer(TIME_OUT_US)
+                    if (inIndex >= 0) {
+                        val buffer: ByteBuffer? = decoder.getInputBuffer(inIndex)
+                        val sampleSize: Int = buffer?.let { extractor.readSampleData(it, 0) } ?: -1
+                        if (sampleSize < 0) {
+                            // We shouldn't stop the playback at this point,
+                            // just pass the EOS
+                            // flag to mediaDecoder, we will get it again from
+                            // the
+                            // dequeueOutputBuffer
+                            Log.d(
+                                TAG,
+                                "InputBuffer BUFFER_FLAG_END_OF_STREAM"
+                            )
+                            decoder.queueInputBuffer(
+                                inIndex, 0, 0, 0,
+                                MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                            )
+                            isEOS = true
+                        } else {
+                            decoder.queueInputBuffer(
+                                inIndex, 0,
+                                sampleSize, extractor.sampleTime, 0
+                            )
+                            extractor.advance()
                         }
                     }
-                    // AudioTrack write data
-                    audioTrack.write(
-                        chunk, info.offset, info.offset
-                                + info.size
+                }
+                when (val outIndex: Int = decoder.dequeueOutputBuffer(info, TIME_OUT_US)) {
+                    MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
+                        Log.d(TAG, "INFO_OUTPUT_BUFFERS_CHANGED")
+                    }
+                    MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
+                        val format: MediaFormat = decoder.outputFormat
+                        Log.d(TAG, "New format $format")
+                        audioTrack.playbackRate = format
+                            .getInteger(MediaFormat.KEY_SAMPLE_RATE)
+                    }
+                    MediaCodec.INFO_TRY_AGAIN_LATER -> Log.d(
+                        TAG,
+                        "dequeueOutputBuffer timed out!"
                     )
-                    decoder.releaseOutputBuffer(outIndex, false)
+                    else -> {
+                        val buffer: ByteBuffer? = decoder.getOutputBuffer(outIndex)
+                        Log.v(
+                            TAG,
+                            "We can't use this buffer but render it due to the API limit, $buffer"
+                        )
+                        val chunk = ByteArray(info.size)
+                        buffer?.get(chunk)
+                        //clear buffer,otherwise get the same buffer which is the last buffer
+                        buffer?.clear()
+                        // We use a very simple clock to keep the video FPS, or the
+                        // audio playback will be too fast
+                        val sleepTime: Long =
+                            info.presentationTimeUs / 1000 - (System.currentTimeMillis() - startMs)
+                        Log.d(
+                            TAG,
+                            "info.presentationTimeUs : " + (info.presentationTimeUs / 1000).toString() + " playTime: " + (System.currentTimeMillis() - startMs).toString() + " sleepTime : " + sleepTime
+                        )
+                        if (sleepTime > 0) sleep(sleepTime)
+                        // AudioTrack write data
+                        audioTrack.write(
+                            chunk, info.offset, info.offset
+                                    + info.size
+                        )
+                        decoder.releaseOutputBuffer(outIndex, false)
+                    }
+                }
+                // All decoded frames have been rendered, we can stop playing now
+                if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
+                    Log.d(TAG, "OutputBuffer BUFFER_FLAG_END_OF_STREAM")
+                    break
                 }
             }
-            // All decoded frames have been rendered, we can stop playing now
-            if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
-                Log.d(TAG, "OutputBuffer BUFFER_FLAG_END_OF_STREAM")
-                break
-            }
+            decoder.stop()
+            decoder.release()
+            extractor.release()
+            audioTrack.stop()
+            audioTrack.release()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        decoder.stop()
-        decoder.release()
-        extractor.release()
-        audioTrack.stop()
-        audioTrack.release()
     }
 
-    private lateinit var extractor: MediaExtractor
     private var mSampleRate = 0
     private var channel = 0
-    private lateinit var decoder: MediaCodec
 
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun init(file: AssetFileDescriptor): Boolean {
-        extractor = MediaExtractor()
-        extractor.setDataSource(file)
+    override fun init(file: AssetFileDescriptor): Boolean {
+        super.init(file)
         for (i in 0 until extractor.trackCount) {
             val format: MediaFormat = extractor.getTrackFormat(i)
             val mime = format.getString(MediaFormat.KEY_MIME)

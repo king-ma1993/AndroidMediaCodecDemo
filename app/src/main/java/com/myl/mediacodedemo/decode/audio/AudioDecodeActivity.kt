@@ -46,6 +46,6 @@ class AudioDecodeActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        audioDecoder.stop()
+        audioDecoder.release()
     }
 }
