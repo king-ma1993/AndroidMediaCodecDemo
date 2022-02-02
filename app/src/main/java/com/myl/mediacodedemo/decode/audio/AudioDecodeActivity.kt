@@ -33,7 +33,6 @@ class AudioDecodeActivity : AppCompatActivity() {
         binding.playAac.setOnClickListener {
             playAac()
         }
-
     }
 
     private fun playAac() {
