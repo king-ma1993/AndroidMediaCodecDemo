@@ -64,7 +64,9 @@ class RecordRenderer(private val recordViewModel: RecordViewModel) : GLSurfaceVi
     }
 
     private fun initFilters() {
-        mInputFilter = GLImageOESInputFilter(recordViewModel.context)
+        recordViewModel.fragmentActivity?.apply {
+            mInputFilter = GLImageOESInputFilter(this)
+        }
         mImageFilter = GLImageFilter()
     }
 

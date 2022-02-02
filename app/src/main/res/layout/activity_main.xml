@@ -24,5 +24,13 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/audio_decode"/>
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/video_encode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/video_encode"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/video_decode"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

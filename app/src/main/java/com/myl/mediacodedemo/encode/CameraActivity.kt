@@ -2,12 +2,15 @@ package com.myl.mediacodedemo.encode
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.myl.mediacodedemo.R
 import com.myl.mediacodedemo.databinding.ActivityEncodeBinding
+import com.myl.mediacodedemo.decode.video.VideoDecodeActivity
 import com.serenegiant.dialog.MessageDialogFragmentV4
 import com.serenegiant.dialog.MessageDialogFragmentV4.MessageDialogListener
 import com.serenegiant.system.BuildCheck
@@ -47,6 +50,10 @@ class CameraActivity : AppCompatActivity(), MessageDialogListener {
 
         /** request code for ACCESS_FINE_LOCATION permission  */
         private const val REQUEST_PERMISSION_LOCATION = 0x6789
+
+        fun startCameraActivity(context: Context) {
+            context.startActivity(Intent(context, CameraActivity::class.java))
+        }
     }
 
 

@@ -5,6 +5,7 @@ import android.os.Bundle
 import com.myl.mediacodedemo.databinding.ActivityMainBinding
 import com.myl.mediacodedemo.decode.audio.AudioDecodeActivity
 import com.myl.mediacodedemo.decode.video.VideoDecodeActivity
+import com.myl.mediacodedemo.encode.CameraActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,6 +24,9 @@ class MainActivity : AppCompatActivity() {
         }
         activityMainBinding.videoDecode.setOnClickListener {
             VideoDecodeActivity.startVideoDecodeActivity(this)
+        }
+        activityMainBinding.videoEncode.setOnClickListener {
+            CameraActivity.startCameraActivity(this)
         }
     }
 }

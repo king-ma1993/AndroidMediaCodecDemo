@@ -1,26 +1,34 @@
 package com.myl.mediacodedemo.encode.viewmodel
 
 import android.content.Context
+import android.graphics.SurfaceTexture
 import android.opengl.EGLContext
 import android.os.Environment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.myl.camerasdk.camera.CameraXController
 import com.myl.mediacodedemo.encode.OnRecordStateListener
+import com.myl.mediacodedemo.encode.camera.CameraApi
+import com.myl.mediacodedemo.encode.camera.CameraController
+import com.myl.mediacodedemo.encode.camera.ICameraController
+import com.myl.mediacodedemo.encode.camera.OnSurfaceTextureListener
 import com.myl.mediacodedemo.encode.record.AudioConfig
 import com.myl.mediacodedemo.encode.record.MediaRecorder
 import com.myl.mediacodedemo.encode.record.MediaType
 import com.myl.mediacodedemo.encode.record.RecordInfo
 import com.myl.mediacodedemo.encode.record.VideoConfig
+import com.myl.mediacodedemo.encode.renderer.RecordRenderer
 import com.myl.mediacodedemo.utils.TimeUtils
 import java.io.File
 
-class RecordViewModel : ViewModel(), OnRecordStateListener {
+class RecordViewModel : ViewModel(), OnRecordStateListener,
+    SurfaceTexture.OnFrameAvailableListener, OnSurfaceTextureListener {
 
     // 音视频参数
     private var mVideoParams: VideoConfig = VideoConfig()
     private var mAudioParams: AudioConfig = AudioConfig()
 
-    // 录制操作开始
     // 录制操作开始
     private var mOperateStarted: Boolean = false
 //    private val isRecordStart = false
@@ -43,21 +51,36 @@ class RecordViewModel : ViewModel(), OnRecordStateListener {
     // 视频录制器
     private lateinit var mHWMediaRecorder: MediaRecorder
 
-    lateinit var context: Context
+    // 相机控制器
+    private var mCameraController: ICameraController? = null
+
+    var fragmentActivity: FragmentActivity? = null
 
     val isShowViewLiveData by lazy { MutableLiveData<Boolean>() }
     val recordProgressLiveData by lazy { MutableLiveData<Float>() }
+    val frameAvailableLiveData by lazy { MutableLiveData<Boolean>() }
+    val surfaceTextureLiveData by lazy { MutableLiveData<SurfaceTexture>() }
+
+    lateinit var mRenderer: RecordRenderer
 
 
-    fun init(context: Context) {
-        this.context = context
+    fun init(fragmentActivity: FragmentActivity) {
+        mRenderer = RecordRenderer(this)
+        this.fragmentActivity = fragmentActivity
         // 视频录制器
         mHWMediaRecorder = MediaRecorder(this)
         // 视频参数
-        mVideoParams.videoPath = getVideoTempPath(context)
+        mVideoParams.videoPath = getVideoTempPath(fragmentActivity.applicationContext)
         // 音频参数
-        mAudioParams.audioPath = getAudioTempPath(context)
-
+        mAudioParams.audioPath = getAudioTempPath(fragmentActivity.applicationContext)
+        // 创建相机控制器
+        if (CameraApi.hasCamera2(fragmentActivity.applicationContext)) {
+            mCameraController = CameraXController(fragmentActivity)
+        } else {
+            mCameraController = CameraController(fragmentActivity)
+        }
+        mCameraController?.setOnFrameAvailableListener(this)
+        mCameraController?.setOnSurfaceTextureListener(this)
     }
 
 
@@ -137,9 +160,28 @@ class RecordViewModel : ViewModel(), OnRecordStateListener {
      * 打开相机
      */
     fun openCamera() {
-//        mCameraController.setFront(false)
-//        mCameraController.openCamera()
-//        calculateImageSize()
+        mCameraController?.setFront(false)
+        mCameraController?.openCamera()
+        calculateImageSize()
+    }
+
+
+    /**
+     * 计算imageView 的宽高
+     */
+    private fun calculateImageSize() {
+        val width: Int
+        val height: Int
+        if (mCameraController!!.getOrientation() === 90 || mCameraController!!.getOrientation() === 270) {
+            width = mCameraController!!.getPreviewHeight()
+            height = mCameraController!!.getPreviewWidth()
+        } else {
+            width = mCameraController!!.getPreviewWidth()
+            height = mCameraController!!.getPreviewHeight()
+        }
+        mVideoParams.videoWidth = width
+        mVideoParams.videoHeight = height
+        mRenderer.setTextureSize(width, height)
     }
 
     /**
@@ -189,6 +231,32 @@ class RecordViewModel : ViewModel(), OnRecordStateListener {
     fun onRecordFrameAvailable(texture: Int, timestamp: Long) {
         if (mOperateStarted && mHWMediaRecorder != null && mHWMediaRecorder.isRecording()) {
             mHWMediaRecorder.frameAvailable(texture, timestamp)
+        }
+    }
+
+    override fun onFrameAvailable(p0: SurfaceTexture?) {
+        frameAvailableLiveData.postValue(true)
+
+    }
+
+    override fun onSurfaceTexturePrepared(surfaceTexture: SurfaceTexture) {
+        surfaceTextureLiveData.postValue(surfaceTexture)
+    }
+
+    /**
+     * 释放资源
+     */
+    fun closeCamera() {
+        mCameraController!!.closeCamera()
+    }
+
+    /**
+     * 释放资源
+     */
+    fun release() {
+        fragmentActivity = null
+        if (mHWMediaRecorder != null) {
+            mHWMediaRecorder.release()
         }
     }
 }
