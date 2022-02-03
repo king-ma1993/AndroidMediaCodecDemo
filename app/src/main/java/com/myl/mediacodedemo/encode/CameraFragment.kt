@@ -3,7 +3,9 @@ package com.myl.mediacodedemo.encode
 import android.graphics.SurfaceTexture
 import android.opengl.GLSurfaceView
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -25,9 +27,18 @@ class CameraFragment : Fragment() {
         private const val TAG = "CameraFragment"
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        cameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
+        return cameraBinding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        cameraBinding = FragmentCameraBinding.bind(view)
+
         recordViewModel.init(requireActivity())
         initView()
         initObserver()
@@ -101,7 +112,11 @@ class CameraFragment : Fragment() {
         // 除此之外，我们还需要考虑线程安全问题，即同时被UI线程和OpenGL渲染线程读写的变量。
         //使用queueEvent()，则完全不必担心上述问题，因为最终所有方法都是在GLSurfaceView.Renderer中的方法中调用的，
         // 也就是在渲染线程中使用的。
-        cameraBinding.glRecordView.queueEvent { recordViewModel.mRenderer.bindSurfaceTexture(surfaceTexture) }
+        cameraBinding.glRecordView.queueEvent {
+            recordViewModel.mRenderer.bindSurfaceTexture(
+                surfaceTexture
+            )
+        }
     }
 
     override fun onPause() {
