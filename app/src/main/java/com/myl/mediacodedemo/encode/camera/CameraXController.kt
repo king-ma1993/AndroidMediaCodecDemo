@@ -1,4 +1,4 @@
-package com.myl.camerasdk.camera
+package com.myl.mediacodedemo.encode.camera
 
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
@@ -19,7 +19,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.google.common.util.concurrent.ListenableFuture
-import com.myl.mediacodedemo.encode.camera.PreviewCallbackAnalyzer
 import java.util.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor

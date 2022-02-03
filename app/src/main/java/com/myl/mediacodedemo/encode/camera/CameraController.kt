@@ -9,9 +9,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import androidx.annotation.RequiresApi
-import com.myl.camerasdk.camera.BaseCameraController
-import com.myl.camerasdk.camera.CalculateType
-import com.myl.camerasdk.camera.CameraParam
 import java.io.IOException
 import java.util.*
 import kotlin.math.abs

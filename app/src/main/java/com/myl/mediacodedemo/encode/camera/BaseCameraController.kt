@@ -1,9 +1,6 @@
-package com.myl.camerasdk.camera
+package com.myl.mediacodedemo.encode.camera
 
 import android.graphics.SurfaceTexture
-import com.myl.mediacodedemo.encode.camera.ICameraController
-import com.myl.mediacodedemo.encode.camera.OnSurfaceTextureListener
-import com.myl.mediacodedemo.encode.camera.PreviewCallback
 
 abstract class BaseCameraController : ICameraController {
 

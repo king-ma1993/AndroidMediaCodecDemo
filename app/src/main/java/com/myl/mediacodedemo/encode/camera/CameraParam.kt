@@ -1,4 +1,4 @@
-package com.myl.camerasdk.camera
+package com.myl.mediacodedemo.encode.camera
 
 
 /**

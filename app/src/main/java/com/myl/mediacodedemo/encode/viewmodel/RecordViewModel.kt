@@ -7,7 +7,7 @@ import android.os.Environment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.myl.camerasdk.camera.CameraXController
+import com.myl.mediacodedemo.encode.camera.CameraXController
 import com.myl.mediacodedemo.encode.OnRecordStateListener
 import com.myl.mediacodedemo.encode.camera.CameraApi
 import com.myl.mediacodedemo.encode.camera.CameraController

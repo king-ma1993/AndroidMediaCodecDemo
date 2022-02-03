@@ -1,8 +1,7 @@
-package com.myl.camerasdk.camera
+package com.myl.mediacodedemo.encode.camera
 
 /**
  * 相机预览和拍照计算类型
- * Created by cain on 2018/1/14.
  */
 internal enum class CalculateType {
     Min,  // 最小
