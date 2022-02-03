@@ -94,5 +94,4 @@ class MediaRecorder(private val mRecordStateListener: OnRecordStateListener? = n
     fun frameAvailable(texture: Int, timestamp: Long) {
         mVideoRecorder.frameAvailable(texture, timestamp)
     }
-
 }

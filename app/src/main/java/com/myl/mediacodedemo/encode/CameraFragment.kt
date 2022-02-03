@@ -25,6 +25,7 @@ class CameraFragment : Fragment() {
 
     companion object {
         private const val TAG = "CameraFragment"
+        private const val DEFAULT_RECORD_S = 20
     }
 
     override fun onCreateView(
@@ -38,8 +39,8 @@ class CameraFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         recordViewModel.init(requireActivity())
+        recordViewModel.setRecordSeconds(DEFAULT_RECORD_S)
         initView()
         initObserver()
     }

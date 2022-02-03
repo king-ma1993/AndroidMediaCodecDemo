@@ -10,8 +10,6 @@ import com.myl.mediacodedemo.databinding.ActivityEncodeBinding
 class CameraActivity : AppCompatActivity(){
 
     companion object {
-
-
         fun startCameraActivity(context: Context) {
             context.startActivity(Intent(context, CameraActivity::class.java))
         }
@@ -27,5 +25,4 @@ class CameraActivity : AppCompatActivity(){
                 .add(R.id.container, CameraFragment()).commit()
         }
     }
-
 }

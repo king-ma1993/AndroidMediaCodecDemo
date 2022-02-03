@@ -36,16 +36,20 @@ class VideoRecorder : Runnable, VideoEncoder.OnEncodingListener {
     var mRecordListener: OnRecordListener? = null
     private var mRunning = false
     private var mFirstTime = 0L // 录制开始的时间，方便开始录制
+
     // 录制Handler;
     private var mHandler: RecordHandler? = null
+
     // 视频编码器
     private var mVideoEncoder: VideoEncoder? = null
+
     // 录制状态锁
-    private val recordLock = Any()
+    private val recordLock = Object()
     private var mVertexBuffer: FloatBuffer? = null
     private var mTextureBuffer: FloatBuffer? = null
     private var mImageFilter: GLImageFilter? = null
     private var mEglCore: EglCore? = null
+    private var mReady = false
 
     // 录制用的OpenGL上下文和EGLSurface
     private var mInputWindowSurface: WindowSurface? = null
@@ -54,16 +58,17 @@ class VideoRecorder : Runnable, VideoEncoder.OnEncodingListener {
         Looper.prepare()
         synchronized(recordLock) {
             mHandler = RecordHandler(this)
-//            recordLock.notify()
+            mReady = true
+            recordLock.notify()
         }
         Looper.loop()
 
         Log.d(TAG, "Video record thread exiting")
         synchronized(recordLock) {
+            mReady = false
             mRunning = false
             mHandler = null
         }
-
     }
 
     /**
@@ -79,8 +84,16 @@ class VideoRecorder : Runnable, VideoEncoder.OnEncodingListener {
             }
             mRunning = true
             Thread(this, TAG).start()
+            while (!mReady) {
+                try {
+                    recordLock.wait()
+                } catch (ie: InterruptedException) {
+                    // ignore
+                }
+            }
         }
         mFirstTime = -1
+        Log.d(TAG, "mHandler:$mHandler")
         mHandler?.apply {
             sendMessage(obtainMessage(MSG_START_RECORDING, params))
         }
@@ -106,6 +119,7 @@ class VideoRecorder : Runnable, VideoEncoder.OnEncodingListener {
         mTextureBuffer = OpenGLUtils.createFloatBuffer(TextureRotationUtils.TextureVertices)
         try {
             mVideoEncoder = VideoEncoder(params, this)
+            Log.d(TAG, "mVideoEncoder init")
         } catch (ioe: IOException) {
             throw java.lang.RuntimeException(ioe)
         }
@@ -118,9 +132,7 @@ class VideoRecorder : Runnable, VideoEncoder.OnEncodingListener {
         mImageFilter?.onInputSizeChanged(params.videoWidth, params.videoHeight)
         mImageFilter?.onDisplaySizeChanged(params.videoWidth, params.videoHeight)
         // 录制开始回调
-        if (mRecordListener != null) {
-            mRecordListener!!.onRecordStart(MediaType.VIDEO)
-        }
+        mRecordListener?.onRecordStart(MediaType.VIDEO)
     }
 
     /**
@@ -133,28 +145,19 @@ class VideoRecorder : Runnable, VideoEncoder.OnEncodingListener {
         Log.d(TAG, "onStopRecord")
         mVideoEncoder?.drainEncoder(true)
         mVideoEncoder?.release()
-        if (mImageFilter != null) {
-            mImageFilter!!.release()
-            mImageFilter = null
-        }
-        if (mInputWindowSurface != null) {
-            mInputWindowSurface!!.release()
-            mInputWindowSurface = null
-        }
-        if (mEglCore != null) {
-            mEglCore!!.release()
-            mEglCore = null
-        }
-
+        mImageFilter?.release()
+        mImageFilter = null
+        mInputWindowSurface?.release()
+        mInputWindowSurface = null
+        mEglCore?.release()
+        mEglCore = null
         // 录制完成回调
-        if (mRecordListener != null) {
-            mRecordListener!!.onRecordFinish(
-                RecordInfo(
-                    mVideoEncoder!!.mVideoParams.videoPath,
-                    mVideoEncoder!!.mDuration, MediaType.VIDEO
-                )
+        mRecordListener?.onRecordFinish(
+            RecordInfo(
+                mVideoEncoder!!.mVideoParams.videoPath,
+                mVideoEncoder!!.mDuration, MediaType.VIDEO
             )
-        }
+        )
         mVideoEncoder = null
     }
 
@@ -197,7 +200,7 @@ class VideoRecorder : Runnable, VideoEncoder.OnEncodingListener {
      * @param timestampNanos
      */
     private fun onRecordFrameAvailable(texture: Int, timestampNanos: Long) {
-        Log.d(TAG, "onRecordFrameAvailable")
+        Log.d(TAG, "onRecordFrameAvailable mVideoEncoder:$mVideoEncoder")
         if (mVideoEncoder == null) {
             return
         }
@@ -237,19 +240,21 @@ class VideoRecorder : Runnable, VideoEncoder.OnEncodingListener {
      */
     fun frameAvailable(texture: Int, timestamp: Long) {
         synchronized(recordLock) {
-//            if (!mReady) {
-//                return
-//            }
+            if (!mReady) {
+                return
+            }
         }
         // 时间戳为0时，不可用
         if (timestamp == 0L) {
             return
         }
         mHandler?.apply {
-            sendMessage(obtainMessage(
-                MSG_FRAME_AVAILABLE,
-                (timestamp shr 32).toInt(), timestamp.toInt(), texture
-            ))
+            sendMessage(
+                obtainMessage(
+                    MSG_FRAME_AVAILABLE,
+                    (timestamp shr 32).toInt(), timestamp.toInt(), texture
+                )
+            )
         }
     }
 

@@ -49,7 +49,7 @@ class RecordViewModel : ViewModel(), OnRecordStateListener,
     private var mVideoInfo: RecordInfo? = null
 
     // 视频录制器
-    private lateinit var mHWMediaRecorder: MediaRecorder
+    private lateinit var mediaRecorder: MediaRecorder
 
     // 相机控制器
     private var mCameraController: ICameraController? = null
@@ -68,16 +68,16 @@ class RecordViewModel : ViewModel(), OnRecordStateListener,
         mRenderer = RecordRenderer(this)
         this.fragmentActivity = fragmentActivity
         // 视频录制器
-        mHWMediaRecorder = MediaRecorder(this)
+        mediaRecorder = MediaRecorder(this)
         // 视频参数
         mVideoParams.videoPath = getVideoTempPath(fragmentActivity.applicationContext)
         // 音频参数
         mAudioParams.audioPath = getAudioTempPath(fragmentActivity.applicationContext)
         // 创建相机控制器
-        if (CameraApi.hasCamera2(fragmentActivity.applicationContext)) {
-            mCameraController = CameraXController(fragmentActivity)
+        mCameraController = if (CameraApi.hasCamera2(fragmentActivity.applicationContext)) {
+            CameraXController(fragmentActivity)
         } else {
-            mCameraController = CameraController(fragmentActivity)
+            CameraController(fragmentActivity)
         }
         mCameraController?.setOnFrameAvailableListener(this)
         mCameraController?.setOnSurfaceTextureListener(this)
@@ -152,7 +152,7 @@ class RecordViewModel : ViewModel(), OnRecordStateListener,
         if (mOperateStarted) {
             return
         }
-        mHWMediaRecorder.startRecord(mVideoParams, mAudioParams)
+        mediaRecorder.startRecord(mVideoParams, mAudioParams)
         mOperateStarted = true
     }
 
@@ -192,7 +192,7 @@ class RecordViewModel : ViewModel(), OnRecordStateListener,
             return
         }
         mOperateStarted = false
-        mHWMediaRecorder.stopRecord()
+        mediaRecorder.stopRecord()
     }
 
 
@@ -229,8 +229,8 @@ class RecordViewModel : ViewModel(), OnRecordStateListener,
      * @param timestamp
      */
     fun onRecordFrameAvailable(texture: Int, timestamp: Long) {
-        if (mOperateStarted && mHWMediaRecorder != null && mHWMediaRecorder.isRecording()) {
-            mHWMediaRecorder.frameAvailable(texture, timestamp)
+        if (mOperateStarted && mediaRecorder != null && mediaRecorder.isRecording()) {
+            mediaRecorder.frameAvailable(texture, timestamp)
         }
     }
 
@@ -247,7 +247,7 @@ class RecordViewModel : ViewModel(), OnRecordStateListener,
      * 释放资源
      */
     fun closeCamera() {
-        mCameraController!!.closeCamera()
+        mCameraController?.closeCamera()
     }
 
     /**
@@ -255,8 +255,8 @@ class RecordViewModel : ViewModel(), OnRecordStateListener,
      */
     fun release() {
         fragmentActivity = null
-        if (mHWMediaRecorder != null) {
-            mHWMediaRecorder.release()
+        if (mediaRecorder != null) {
+            mediaRecorder.release()
         }
     }
 }

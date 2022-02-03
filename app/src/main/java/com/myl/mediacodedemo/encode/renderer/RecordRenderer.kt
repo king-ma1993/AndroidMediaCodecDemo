@@ -97,7 +97,7 @@ class RecordRenderer(private val recordViewModel: RecordViewModel) : GLSurfaceVi
         // 更新纹理
         var timeStamp = 0L
         synchronized(this) {
-            val surfaceTexture = mWeakSurfaceTexture!!.get()
+            val surfaceTexture = mWeakSurfaceTexture?.get()
             surfaceTexture?.let {
                 updateSurfaceTexture(it)
             }

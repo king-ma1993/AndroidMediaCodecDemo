@@ -82,6 +82,8 @@ class AudioEncoder(
     fun release() {
         try {
             mMediaCodec?.apply {
+
+
                 stop()
                 release()
             }
