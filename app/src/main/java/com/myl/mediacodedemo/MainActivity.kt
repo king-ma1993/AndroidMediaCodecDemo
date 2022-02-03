@@ -79,7 +79,7 @@ class MainActivity : AppCompatActivity() , MessageDialogFragmentV4.MessageDialog
                 && checkPermissionWriteExternalStorage())
     }
 
-    protected open fun checkPermissionWriteExternalStorage(): Boolean {
+    private fun checkPermissionWriteExternalStorage(): Boolean {
         if (!PermissionCheck.hasWriteExternalStorage(this)) {
             MessageDialogFragmentV4.showDialog(
                 this,
@@ -146,7 +146,7 @@ class MainActivity : AppCompatActivity() , MessageDialogFragmentV4.MessageDialog
         }
     }
 
-    protected open fun checkPermissionResult(
+    private fun checkPermissionResult(
         requestCode: Int,
         permission: String?, result: Boolean
     ) {
