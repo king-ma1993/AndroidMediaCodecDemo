@@ -99,7 +99,7 @@ class AudioDecoder : MediaDecoder() {
                             info.presentationTimeUs / 1000 - (System.currentTimeMillis() - startMs)
                         Log.d(
                             TAG,
-                            "info.presentationTimeUs : " + (info.presentationTimeUs / 1000).toString() + " playTime: " + (System.currentTimeMillis() - startMs).toString() + " sleepTime : " + sleepTime
+                            "info.presentationTimeMs : " + (info.presentationTimeUs / 1000).toString() + " playTime: " + (System.currentTimeMillis() - startMs).toString() + " sleepTime : " + sleepTime
                         )
                         if (sleepTime > 0) sleep(sleepTime)
                         // AudioTrack write data
