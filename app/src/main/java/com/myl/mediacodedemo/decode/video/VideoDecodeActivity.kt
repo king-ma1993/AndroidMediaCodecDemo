@@ -22,7 +22,7 @@ class VideoDecodeActivity : AppCompatActivity(), SurfaceHolder.Callback {
     }
 
     private val videoPath by lazy {
-        resources.openRawResourceFd(R.raw.sample_video)
+        resources.openRawResourceFd(R.raw.test_video)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
